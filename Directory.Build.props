@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\artifacts\**;**\obj-alt\**;**\obj-alt-verify\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

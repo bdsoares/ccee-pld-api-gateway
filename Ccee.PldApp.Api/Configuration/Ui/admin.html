@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - CCEE PLD Gateway</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #040917;
+            --bg-layer: #09142f;
+            --panel: #0f1c3f;
+            --text-main: #edf4ff;
+            --text-soft: #97acd5;
+            --accent-blue: #4c8eff;
+            --accent-cyan: #2dd4f6;
+            --accent-purple: #a855f7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Segoe UI Variable Display", "Bahnschrift", "Candara", sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 12% 14%, rgba(41, 92, 255, 0.28) 0%, transparent 40%),
+                radial-gradient(circle at 90% 5%, rgba(45, 212, 246, 0.18) 0%, transparent 35%),
+                linear-gradient(180deg, #040917 0%, #071233 100%);
+        }
+
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, rgba(15, 28, 63, 0.92) 0%, rgba(9, 20, 47, 0.96) 100%);
+            border: 1px solid rgba(84, 130, 255, 0.26);
+            border-radius: 14px;
+            box-shadow: 0 28px 64px rgba(1, 6, 22, 0.68);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0b2d76 0%, #194ab4 45%, #2e77ff 100%);
+            color: #f8fbff;
+            padding: 20px;
+            border-bottom: 1px solid rgba(124, 170, 255, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-title h1 { font-size: 24px; margin-bottom: 4px; }
+        .header-title p { font-size: 13px; color: #d4e4ff; }
+
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+
+        .header-user {
+            font-size: 12px;
+            color: #dceaff;
+            background: rgba(8, 26, 72, 0.5);
+            border: 1px solid rgba(181, 205, 255, 0.36);
+            border-radius: 999px;
+            padding: 6px 11px;
+        }
+
+        .btn {
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2dd4f6 0%, #2f7cff 100%);
+            color: #f8fbff;
+            padding: 0 12px;
+            font-weight: 600;
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #d9485f 0%, #9f1239 100%);
+        }
+
+        .content { padding: 18px; }
+        .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
+        .tab-btn {
+            border: 1px solid rgba(111, 153, 255, 0.3);
+            background: rgba(10, 22, 52, 0.7);
+            color: #c8dbff;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #2dd4f6 0%, #2f7cff 100%);
+            color: #f8fbff;
+            border-color: transparent;
+        }
+
+        .tab-panel {
+            display: none;
+            background: linear-gradient(180deg, rgba(10, 22, 52, 0.78) 0%, rgba(8, 19, 45, 0.88) 100%);
+            border: 1px solid rgba(94, 135, 239, 0.24);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .tab-panel.active { display: block; }
+
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: end; }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label {
+            font-size: 11px;
+            color: #b9cff8;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+            font-weight: 600;
+        }
+
+        .field input,
+        .field select {
+            min-width: 140px;
+            height: 36px;
+            border: 1px solid rgba(108, 148, 255, 0.35);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #0a1634;
+            color: var(--text-main);
+            padding: 6px 10px;
+        }
+
+        .alert-host { margin-bottom: 12px; }
+        .alert { border-radius: 8px; padding: 12px 14px; font-size: 13px; border: 1px solid transparent; }
+        .alert-error { background: rgba(127, 29, 29, 0.65); color: #ffe0e0; border-color: rgba(248, 113, 113, 0.6); }
+        .alert-warning { background: rgba(120, 53, 15, 0.45); color: #ffe9c9; border-color: rgba(251, 191, 36, 0.62); }
+        .alert-info { background: rgba(29, 78, 216, 0.28); color: #d7e7ff; border-color: rgba(96, 165, 250, 0.5); }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(20, 38, 82, 0.92) 0%, rgba(15, 28, 63, 0.92) 100%);
+            border: 1px solid rgba(110, 148, 248, 0.2);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 10px;
+            padding: 12px;
+            min-height: 84px;
+        }
+
+        .card h3 { font-size: 11px; color: #8ca4d4; text-transform: uppercase; letter-spacing: 0.45px; margin-bottom: 8px; }
+        .card .value { font-size: 20px; font-weight: 700; color: #f2f7ff; word-break: break-word; }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 16px;
+            background: linear-gradient(180deg, rgba(6, 18, 44, 0.86) 0%, rgba(9, 25, 62, 0.95) 100%);
+            border: 1px solid rgba(93, 134, 242, 0.24);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .table-wrap {
+            overflow: auto;
+            border: 1px solid rgba(98, 138, 241, 0.24);
+            border-radius: 10px;
+            background: rgba(6, 18, 44, 0.65);
+            margin-bottom: 14px;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 680px; }
+        thead { background: rgba(21, 38, 82, 0.94); }
+        th, td {
+            padding: 10px;
+            font-size: 13px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 142, 245, 0.16);
+            color: #d8e6ff;
+            white-space: nowrap;
+        }
+        th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: #8fb0e9; }
+
+        pre {
+            background: rgba(4, 11, 28, 0.92);
+            border: 1px solid rgba(93, 134, 242, 0.28);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #d6e5ff;
+            max-height: 500px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-cache { background: rgba(34, 197, 94, 0.16); color: #7df7b2; border: 1px solid rgba(34, 197, 94, 0.35); }
+        .badge-ccee { background: rgba(45, 212, 246, 0.16); color: #a6eeff; border: 1px solid rgba(45, 212, 246, 0.36); }
+        .badge-unknown { background: rgba(148, 163, 184, 0.16); color: #d9e5fb; border: 1px solid rgba(148, 163, 184, 0.34); }
+
+        .loading { text-align: center; padding: 24px; color: #89ddff; }
+
+        @media (max-width: 900px) {
+            body { padding: 10px; }
+            .content { padding: 12px; }
+            .chart-container { height: 340px; }
+            .header-title h1 { font-size: 21px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="header-title">
+            <h1>Painel Admin CCEE PLD</h1>
+            <p>Monitoramento e administracao da API</p>
+        </div>
+        <div class="header-actions">
+            <div class="header-user" id="headerUser">Usuario: -</div>
+            <button class="btn danger" id="logoutBtn" type="button">Sair</button>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="alert-host" id="alertHost"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="overview" type="button">Visao Geral</button>
+            <button class="tab-btn" data-tab="pld" type="button">PLD</button>
+            <button class="tab-btn" data-tab="metrics" type="button">Metricas API</button>
+            <button class="tab-btn" data-tab="cache" type="button">Cache</button>
+            <button class="tab-btn" data-tab="configs" type="button">Configuracoes</button>
+            <button class="tab-btn" data-tab="logs" type="button">Logs</button>
+        </div>
+
+        <section class="tab-panel active" id="tab-overview">
+            <div class="toolbar">
+                <button class="btn" id="refreshOverviewBtn" type="button">Atualizar Visao Geral</button>
+            </div>
+            <div class="card-grid">
+                <div class="card"><h3>Servico</h3><div class="value" id="ovService">-</div></div>
+                <div class="card"><h3>Ambiente</h3><div class="value" id="ovEnvironment">-</div></div>
+                <div class="card"><h3>Uptime</h3><div class="value" id="ovUptime">-</div></div>
+                <div class="card"><h3>Usuario Atual</h3><div class="value" id="ovUser">-</div></div>
+                <div class="card"><h3>Sessoes Ativas</h3><div class="value" id="ovSessions">-</div></div>
+                <div class="card"><h3>Banco (MB)</h3><div class="value" id="ovDatabaseSize">-</div></div>
+                <div class="card"><h3>Browser</h3><div class="value" id="ovBrowser">-</div></div>
+                <div class="card"><h3>Anos ResourceId</h3><div class="value" id="ovResourceYears">-</div></div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+                    <tbody id="overviewDetailsBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="tab-panel" id="tab-pld">
+            <div class="toolbar">
+                <div class="field"><label for="dataInput">Data</label><input type="date" id="dataInput"></div>
+                <div class="field">
+                    <label for="submercadoSelect">Submercado</label>
+                    <select id="submercadoSelect">
+                        <option value="SUDESTE">SUDESTE</option>
+                        <option value="SUL">SUL</option>
+                        <option value="NORDESTE">NORDESTE</option>
+                        <option value="NORTE">NORTE</option>
+                    </select>
+                </div>
+                <div class="field"><label for="limitInput">Limite</label><input type="number" id="limitInput" value="1000" min="1" max="10000"></div>
+                <button class="btn" id="loadPldBtn" type="button">Carregar PLD</button>
+            </div>
+            <div class="card-grid">
+                <div class="card"><h3>Media do Dia</h3><div class="value" id="averageValue">-</div></div>
+                <div class="card"><h3>Submercado</h3><div class="value" id="submercadoValue">-</div></div>
+                <div class="card"><h3>PLD Atual</h3><div class="value" id="currentValue">-</div></div>
+                <div class="card"><h3>Origem dos Dados</h3><div class="value" id="sourceValue">-</div></div>
+            </div>
+            <div id="pldLoading" style="display:none;"><div class="loading">Carregando dados de PLD...</div></div>
+            <div class="chart-container"><canvas id="pldChart"></canvas></div>
+        </section>
+
+        <section class="tab-panel" id="tab-metrics">
+            <div class="toolbar">
+                <div class="field"><label for="metricsFromInput">De (Local)</label><input id="metricsFromInput" type="datetime-local"></div>
+                <div class="field"><label for="metricsToInput">Ate (Local)</label><input id="metricsToInput" type="datetime-local"></div>
+                <div class="field">
+                    <label for="metricsMethodSelect">Metodo</label>
+                    <select id="metricsMethodSelect">
+                        <option value="">Todos</option>
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+                <div class="field"><label for="metricsPathInput">Rota contem</label><input id="metricsPathInput" type="text" placeholder="/api"></div>
+                <div class="field"><label for="metricsStatusInput">Status</label><input id="metricsStatusInput" type="number" min="100" max="599" placeholder="ex: 500"></div>
+                <button class="btn" id="refreshMetricsBtn" type="button">Aplicar Filtro</button>
+            </div>
+            <div class="card-grid">
+                <div class="card"><h3>Janela</h3><div class="value" id="mtWindow">-</div></div>
+                <div class="card"><h3>Total de Requisicoes</h3><div class="value" id="mtTotalRequests">-</div></div>
+                <div class="card"><h3>Total de Erros</h3><div class="value" id="mtTotalErrors">-</div></div>
+                <div class="card"><h3>Latencia Media (ms)</h3><div class="value" id="mtAverageMs">-</div></div>
+                <div class="card"><h3>Latencia Maxima (ms)</h3><div class="value" id="mtMaxMs">-</div></div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Metodo</th><th>Rota</th><th>Req</th><th>Erros</th><th>Media</th><th>Max</th><th>Status</th><th>Ultimo Acesso</th></tr></thead><tbody id="metricsRoutesBody"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>Data/Hora</th><th>Metodo</th><th>Rota</th><th>Status</th><th>Tempo ms</th><th>IP</th></tr></thead><tbody id="metricsRecentBody"></tbody></table></div>
+        </section>
+
+        <section class="tab-panel" id="tab-cache">
+            <div class="toolbar"><button class="btn" id="refreshCacheBtn" type="button">Atualizar Cache</button></div>
+            <div class="card-grid">
+                <div class="card"><h3>Total de Consultas</h3><div class="value" id="cacheQueryCount">-</div></div>
+                <div class="card"><h3>Total de Registros</h3><div class="value" id="cacheRecordCount">-</div></div>
+                <div class="card"><h3>Tamanho do Banco</h3><div class="value" id="cacheDbSize">-</div></div>
+                <div class="card"><h3>Ultima Atualizacao</h3><div class="value" id="cacheLastWrite">-</div></div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Submercado</th><th>Total de Registros</th></tr></thead><tbody id="cacheDistributionBody"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>Data</th><th>Submercado</th><th>Limite</th><th>ResourceId</th><th>Recuperado Em</th></tr></thead><tbody id="cacheRecentBody"></tbody></table></div>
+        </section>
+
+        <section class="tab-panel" id="tab-configs">
+            <div class="toolbar">
+                <div class="field"><label for="configFileSelect">Arquivo</label><select id="configFileSelect"></select></div>
+                <button class="btn" id="refreshConfigsBtn" type="button">Atualizar Configs</button>
+            </div>
+            <pre id="configContent">Carregando configuracoes...</pre>
+        </section>
+
+        <section class="tab-panel" id="tab-logs">
+            <div class="toolbar">
+                <div class="field"><label for="logFileSelect">Arquivo de Log</label><select id="logFileSelect"></select></div>
+                <div class="field"><label for="logLinesInput">Linhas</label><input id="logLinesInput" type="number" min="20" max="2000" value="200"></div>
+                <button class="btn" id="refreshLogsBtn" type="button">Atualizar Logs</button>
+            </div>
+            <pre id="logsContent">Carregando logs...</pre>
+        </section>
+    </div>
+</div>
+
+<script>
+    let chart = null;
+    let alertTimer = null;
+    const state = {
+        loaded: { overview: false, pld: false, metrics: false, cache: false, configs: false, logs: false },
+        configs: []
+    };
+
+    bindUiEvents();
+    initializeMetricsFilters();
+    document.getElementById("dataInput").valueAsDate = new Date();
+    ensureAuthenticated();
+
+    function bindUiEvents() {
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        document.getElementById("loadPldBtn").addEventListener("click", loadPldChart);
+        document.getElementById("refreshOverviewBtn").addEventListener("click", loadOverview);
+        document.getElementById("refreshMetricsBtn").addEventListener("click", loadMetrics);
+        document.getElementById("refreshCacheBtn").addEventListener("click", loadCache);
+        document.getElementById("refreshConfigsBtn").addEventListener("click", loadConfigs);
+        document.getElementById("refreshLogsBtn").addEventListener("click", loadLogsContent);
+        document.getElementById("configFileSelect").addEventListener("change", renderSelectedConfig);
+        document.getElementById("logFileSelect").addEventListener("change", loadLogsContent);
+        document.getElementById("metricsMethodSelect").addEventListener("change", loadMetrics);
+        document.getElementById("metricsStatusInput").addEventListener("change", loadMetrics);
+
+        const metricsInputIds = ["metricsFromInput", "metricsToInput", "metricsPathInput"];
+        metricsInputIds.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            input.addEventListener("keydown", event => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    loadMetrics();
+                }
+            });
+        });
+
+        document.querySelectorAll(".tab-btn").forEach(button => {
+            button.addEventListener("click", async () => {
+                const tab = button.dataset.tab;
+                switchTab(tab);
+                await lazyLoadTab(tab);
+            });
+        });
+    }
+
+    function initializeMetricsFilters() {
+        const now = new Date();
+        const last24Hours = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+
+        document.getElementById("metricsFromInput").value = toDateTimeLocal(last24Hours);
+        document.getElementById("metricsToInput").value = toDateTimeLocal(now);
+    }
+
+    function buildMetricsQueryString() {
+        const params = new URLSearchParams();
+
+        const fromInput = document.getElementById("metricsFromInput").value;
+        const toInput = document.getElementById("metricsToInput").value;
+        const method = document.getElementById("metricsMethodSelect").value;
+        const pathContains = document.getElementById("metricsPathInput").value.trim();
+        const statusCode = document.getElementById("metricsStatusInput").value.trim();
+
+        if (fromInput) {
+            const fromUtcIso = toUtcIsoFromLocalInput(fromInput);
+            if (fromUtcIso) params.set("fromUtc", fromUtcIso);
+        }
+
+        if (toInput) {
+            const toUtcIso = toUtcIsoFromLocalInput(toInput);
+            if (toUtcIso) params.set("toUtc", toUtcIso);
+        }
+
+        if (method) params.set("method", method);
+        if (pathContains) params.set("pathContains", pathContains);
+        if (statusCode) params.set("statusCode", statusCode);
+
+        const queryString = params.toString();
+        return queryString ? `?${queryString}` : "";
+    }
+
+    function toUtcIsoFromLocalInput(value) {
+        if (!value) return null;
+
+        const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(String(value).trim());
+        if (!match) return null;
+
+        const [, year, month, day, hour, minute] = match;
+        const date = new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute),
+            0,
+            0
+        );
+
+        if (Number.isNaN(date.getTime())) return null;
+        return date.toISOString();
+    }
+
+    async function ensureAuthenticated() {
+        try {
+            const response = await fetch("/api/auth/me");
+            if (!response.ok) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const authInfo = await response.json();
+            document.getElementById("headerUser").textContent = `Usuario: ${authInfo.username || "-"}`;
+
+            await loadOverview();
+            await loadPldChart();
+            state.loaded.overview = true;
+            state.loaded.pld = true;
+        } catch {
+            window.location.href = "/login";
+        }
+    }
+
+    async function logout() {
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+        } finally {
+            window.location.href = "/login";
+        }
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll(".tab-btn").forEach(button => {
+            button.classList.toggle("active", button.dataset.tab === tab);
+        });
+
+        document.querySelectorAll(".tab-panel").forEach(panel => {
+            panel.classList.toggle("active", panel.id === `tab-${tab}`);
+        });
+    }
+
+    async function lazyLoadTab(tab) {
+        if (state.loaded[tab]) return;
+
+        if (tab === "metrics") await loadMetrics();
+        if (tab === "cache") await loadCache();
+        if (tab === "configs") await loadConfigs();
+        if (tab === "logs") await loadLogFilesAndContent();
+
+        state.loaded[tab] = true;
+    }
+
+    async function loadOverview() {
+        try {
+            const response = await fetch("/api/admin/overview");
+            if (!response.ok) throw await parseError(response, "Falha ao carregar visao geral.");
+
+            const data = await response.json();
+            document.getElementById("ovService").textContent = data.service || "-";
+            document.getElementById("ovEnvironment").textContent = data.environment || "-";
+            document.getElementById("ovUptime").textContent = formatDuration(data.uptimeSeconds);
+            document.getElementById("ovUser").textContent = data.authenticatedUser || "-";
+            document.getElementById("ovSessions").textContent = data.activeSessions ?? 0;
+            document.getElementById("ovDatabaseSize").textContent = formatMegabytes(data.database?.sizeBytes);
+            document.getElementById("ovBrowser").textContent = data.browser?.exists ? "OK" : "Nao encontrado";
+            const resourceYearsCount = Number(data.pldGateway?.configuredResourceYearsCount ?? 0);
+            const latestResourceYear = data.pldGateway?.latestConfiguredResourceYear;
+            document.getElementById("ovResourceYears").textContent =
+                resourceYearsCount > 0
+                    ? `${resourceYearsCount} (ultimo: ${latestResourceYear})`
+                    : "0";
+
+            const rows = [
+                ["Iniciado em", formatDateTime(data.startedAtUtc)],
+                ["Machine Name", data.machineName || "-"],
+                ["ProcessId", data.processId || "-"],
+                ["Banco de dados", data.database?.path || "-"],
+                ["Browser path", data.browser?.executablePath || "-"],
+                ["Auto discovery", data.pldGateway?.enableResourceIdAutoDiscovery ? "Ativo" : "Inativo"],
+                ["ResourceIds configurados (anos)", resourceYearsCount],
+                ["Ultimo ano com ResourceId", latestResourceYear || "-"],
+                ["Timeout HTTP", `${data.pldGateway?.httpTimeoutSeconds ?? "-"}s`],
+                ["Max attempts", data.pldGateway?.httpMaxAttempts ?? "-"],
+                ["UI PagesPath", data.ui?.pagesPath || "-"],
+                ["Autenticacao", data.authenticationRequired ? "Obrigatoria" : "Desabilitada"]
+            ];
+
+            document.getElementById("overviewDetailsBody").innerHTML = rows
+                .map(([field, value]) => `<tr><td>${escapeHtml(field)}</td><td>${escapeHtml(String(value ?? "-"))}</td></tr>`)
+                .join("");
+        } catch (error) {
+            showAlert("error", toMessage(error));
+        }
+    }
+
+    async function loadMetrics() {
+        try {
+            const queryString = buildMetricsQueryString();
+            const response = await fetch(`/api/admin/metrics${queryString}`);
+            if (!response.ok) throw await parseError(response, "Falha ao carregar metricas.");
+
+            const data = await response.json();
+            document.getElementById("mtWindow").textContent = `${formatDateTime(data.fromUtc)} ate ${formatDateTime(data.toUtc)}`;
+            document.getElementById("mtTotalRequests").textContent = String(data.totalRequests ?? 0);
+            document.getElementById("mtTotalErrors").textContent = String(data.totalErrors ?? 0);
+            document.getElementById("mtAverageMs").textContent = formatNumber(data.averageDurationMs);
+            document.getElementById("mtMaxMs").textContent = formatNumber(data.maxDurationMs);
+
+            document.getElementById("metricsRoutesBody").innerHTML = (data.byRoute || []).map(route => `<tr>
+                <td>${escapeHtml(route.method || "-")}</td>
+                <td>${escapeHtml(route.path || "-")}</td>
+                <td>${escapeHtml(String(route.count ?? 0))}</td>
+                <td>${escapeHtml(String(route.errorCount ?? 0))}</td>
+                <td>${escapeHtml(formatNumber(route.averageDurationMs))}</td>
+                <td>${escapeHtml(formatNumber(route.maxDurationMs))}</td>
+                <td>${escapeHtml(String(route.lastStatusCode ?? "-"))}</td>
+                <td>${escapeHtml(formatDateTime(route.lastRequestUtc))}</td>
+            </tr>`).join("");
+
+            document.getElementById("metricsRecentBody").innerHTML = (data.recentRequests || []).map(req => `<tr>
+                <td>${escapeHtml(formatDateTime(req.timestampUtc))}</td>
+                <td>${escapeHtml(req.method || "-")}</td>
+                <td>${escapeHtml(req.path || "-")}</td>
+                <td>${escapeHtml(String(req.statusCode ?? "-"))}</td>
+                <td>${escapeHtml(formatNumber(req.durationMs))}</td>
+                <td>${escapeHtml(req.remoteIp || "-")}</td>
+            </tr>`).join("");
+        } catch (error) {
+            showAlert("error", toMessage(error));
+        }
+    }
+
+    async function loadCache() {
+        try {
+            const response = await fetch("/api/admin/cache?limit=80");
+            if (!response.ok) throw await parseError(response, "Falha ao carregar cache.");
+
+            const data = await response.json();
+            document.getElementById("cacheQueryCount").textContent = String(data.totals?.queryCount ?? 0);
+            document.getElementById("cacheRecordCount").textContent = String(data.totals?.recordCount ?? 0);
+            document.getElementById("cacheDbSize").textContent = formatMegabytes(data.database?.sizeBytes);
+            document.getElementById("cacheLastWrite").textContent = formatDateTime(data.database?.lastWriteTimeUtc);
+
+            document.getElementById("cacheDistributionBody").innerHTML = (data.recordsBySubmercado || [])
+                .map(item => `<tr><td>${escapeHtml(item.submercado || "-")}</td><td>${escapeHtml(String(item.totalRecords ?? 0))}</td></tr>`)
+                .join("");
+
+            document.getElementById("cacheRecentBody").innerHTML = (data.recentQueries || []).map(item => `<tr>
+                <td>${escapeHtml(formatDateForDisplay(item.day) || "-")}</td>
+                <td>${escapeHtml(item.submercado || "-")}</td>
+                <td>${escapeHtml(String(item.limit ?? "-"))}</td>
+                <td>${escapeHtml(item.resourceId || "-")}</td>
+                <td>${escapeHtml(formatDateTime(item.retrievedAtUtc))}</td>
+            </tr>`).join("");
+        } catch (error) {
+            showAlert("error", toMessage(error));
+        }
+    }
+
+    async function loadConfigs() {
+        try {
+            const response = await fetch("/api/admin/configs");
+            if (!response.ok) throw await parseError(response, "Falha ao carregar configuracoes.");
+
+            const data = await response.json();
+            state.configs = data.files || [];
+
+            const select = document.getElementById("configFileSelect");
+            select.innerHTML = state.configs
+                .map((file, index) => `<option value="${index}">${escapeHtml(file.relativePath || file.fileName || `config-${index}`)}</option>`)
+                .join("");
+
+            renderSelectedConfig();
+        } catch (error) {
+            showAlert("error", toMessage(error));
+            document.getElementById("configContent").textContent = toMessage(error);
+        }
+    }
+
+    function renderSelectedConfig() {
+        const index = Number(document.getElementById("configFileSelect").value);
+        const selected = state.configs[index];
+
+        if (!selected) {
+            document.getElementById("configContent").textContent = "Nenhum arquivo de configuracao disponivel.";
+            return;
+        }
+
+        document.getElementById("configContent").textContent = selected.content || "";
+    }
+
+    async function loadLogFilesAndContent() {
+        await loadLogFiles();
+        await loadLogsContent();
+    }
+
+    async function loadLogFiles() {
+        try {
+            const response = await fetch("/api/admin/logs/files");
+            if (!response.ok) throw await parseError(response, "Falha ao carregar lista de logs.");
+
+            const data = await response.json();
+            const select = document.getElementById("logFileSelect");
+            const previous = select.value;
+
+            select.innerHTML = (data.files || [])
+                .map(file => `<option value="${escapeHtml(file.name)}">${escapeHtml(file.name)} (${formatBytes(file.length)})</option>`)
+                .join("");
+
+            if (previous && Array.isArray(data.files) && data.files.some(file => file.name === previous)) {
+                select.value = previous;
+            }
+        } catch (error) {
+            showAlert("error", toMessage(error));
+        }
+    }
+
+    async function loadLogsContent() {
+        const file = document.getElementById("logFileSelect").value;
+        const lines = document.getElementById("logLinesInput").value || "200";
+
+        if (!file) {
+            document.getElementById("logsContent").textContent = "Nenhum arquivo de log disponivel.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/logs?file=${encodeURIComponent(file)}&lines=${encodeURIComponent(lines)}`);
+            if (!response.ok) throw await parseError(response, "Falha ao carregar conteudo do log.");
+
+            const data = await response.json();
+            document.getElementById("logsContent").textContent = (data.lines || []).join("\n") || "(arquivo sem linhas para exibir)";
+        } catch (error) {
+            showAlert("error", toMessage(error));
+            document.getElementById("logsContent").textContent = toMessage(error);
+        }
+    }
+
+    async function loadPldChart() {
+        const data = document.getElementById("dataInput").value;
+        const submercado = document.getElementById("submercadoSelect").value;
+        const limit = document.getElementById("limitInput").value || 1000;
+
+        document.getElementById("pldLoading").style.display = "block";
+
+        try {
+            let url = `/api/pld?limit=${encodeURIComponent(limit)}`;
+            if (data) url += `&date=${encodeURIComponent(data)}`;
+            if (submercado) url += `&submercado=${encodeURIComponent(submercado)}`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                let errorBody = null;
+                try { errorBody = await response.json(); } catch {}
+
+                if (response.status === 404) {
+                    const warningMessage = buildNoDataWarningMessage(data, submercado, errorBody);
+                    showAlert("warning", warningMessage);
+                    return;
+                }
+
+                throw new Error(errorBody?.detail || errorBody?.message || "Erro ao carregar dados de PLD.");
+            }
+
+            const pldResult = await response.json();
+            const chartData = formatChartData(pldResult);
+            renderChart(chartData);
+            displayPldInfo(chartData);
+        } catch (error) {
+            showAlert("error", toMessage(error));
+        } finally {
+            document.getElementById("pldLoading").style.display = "none";
+        }
+    }
+
+    function formatChartData(pldResult) {
+        const sortedRecords = [...pldResult.records].sort((a, b) => a.hora - b.hora);
+        const labels = sortedRecords.map(record => `H${String(record.hora).padStart(2, "0")}`);
+        const values = sortedRecords.map(record => Number.parseFloat(record.valor) || 0);
+        const average = values.length > 0 ? Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100 : 0;
+
+        const today = new Date().toISOString().split("T")[0];
+        let currentHourIndex = -1;
+        const dataConsultada = pldResult.query.dia || today;
+
+        if (dataConsultada === today) {
+            const currentHour = new Date().getHours();
+            currentHourIndex = sortedRecords.findIndex(record => record.hora === currentHour || record.hora === currentHour + 1);
+        }
+
+        return {
+            labels,
+            values,
+            average,
+            currentHourIndex,
+            sourceKind: normalizeSource(pldResult.source),
+            sourceRaw: pldResult.source,
+            submercado: pldResult.query.submercado,
+            diaLabel: formatDateForDisplay(pldResult.query.dia)
+        };
+    }
+
+    function renderChart(data) {
+        const context = document.getElementById("pldChart").getContext("2d");
+        const colorRange = Math.max(data.values.length - 1, 1);
+
+        const barColors = data.values.map((_, index) => {
+            if (index === data.currentHourIndex) return "rgba(168, 85, 247, 0.92)";
+            const hue = 212 - Math.round((index / colorRange) * 20);
+            return `hsla(${hue}, 88%, 57%, 0.88)`;
+        });
+
+        const borderColors = data.values.map((_, index) => {
+            if (index === data.currentHourIndex) return "rgba(126, 34, 206, 1)";
+            const hue = 213 - Math.round((index / colorRange) * 16);
+            return `hsla(${hue}, 91%, 68%, 1)`;
+        });
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(context, {
+            type: "bar",
+            data: {
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: "PLD Horario (R$/MWh)",
+                        data: data.values,
+                        backgroundColor: barColors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        borderRadius: 4,
+                        yAxisID: "y"
+                    },
+                    {
+                        label: `Media: ${data.average} R$/MWh`,
+                        type: "line",
+                        data: Array(data.values.length).fill(data.average),
+                        borderColor: "#7dd3fc",
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        yAxisID: "y"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: "top", labels: { color: "#dbeafe" } },
+                    title: {
+                        display: true,
+                        text: `PLD ${data.diaLabel ? `de ${data.diaLabel}` : "ultimas horas"} - ${data.submercado || "Todos os submercados"}`,
+                        color: "#dbeafe",
+                        font: { size: 16, weight: "bold" }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: "rgba(113, 152, 255, 0.14)" }, ticks: { color: "#c8dbff" } },
+                    y: {
+                        type: "linear",
+                        display: true,
+                        grid: { color: "rgba(113, 152, 255, 0.17)" },
+                        ticks: { color: "#c8dbff" },
+                        title: { display: true, text: "Preco (R$/MWh)", color: "#dbeafe" }
+                    }
+                }
+            }
+        });
+    }
+
+    function displayPldInfo(data) {
+        document.getElementById("averageValue").textContent = `R$ ${data.average.toFixed(2)}`;
+        document.getElementById("submercadoValue").textContent = data.submercado || "-";
+
+        const currentValueElement = document.getElementById("currentValue");
+        if (data.currentHourIndex !== -1) {
+            const currentValue = data.values[data.currentHourIndex];
+            currentValueElement.textContent = `R$ ${currentValue.toFixed(2)}`;
+            currentValueElement.style.color = "#c4b5fd";
+        } else {
+            currentValueElement.textContent = "-";
+            currentValueElement.style.color = "#f2f7ff";
+        }
+
+        const sourceValueHost = document.getElementById("sourceValue");
+        const badge = document.createElement("span");
+        badge.className = `badge badge-${data.sourceKind}`;
+        badge.textContent = data.sourceKind === "ccee"
+            ? "API CCEE"
+            : data.sourceKind === "cache"
+                ? "Cache Local"
+                : `Origem desconhecida (${String(data.sourceRaw ?? "-")})`;
+
+        sourceValueHost.innerHTML = "";
+        sourceValueHost.appendChild(badge);
+    }
+
+    function normalizeSource(source) {
+        if (source === null || source === undefined) return "unknown";
+        if (typeof source === "number") {
+            if (source === 2) return "ccee";
+            if (source === 1) return "cache";
+            return "unknown";
+        }
+
+        const normalized = String(source).trim().toLowerCase();
+        if (normalized === "2" || normalized === "ccee") return "ccee";
+        if (normalized === "1" || normalized === "cache") return "cache";
+        return "unknown";
+    }
+
+    function formatDateForDisplay(rawDate) {
+        if (!rawDate) return null;
+        const value = String(rawDate).trim();
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+    }
+
+    function buildNoDataWarningMessage(rawDate, submercado, errorBody) {
+        let dateLabel = formatDateForDisplay(rawDate);
+        if (!dateLabel && errorBody && typeof errorBody.detail === "string") {
+            const match = /Dia:\s*(\d{4}-\d{2}-\d{2})/i.exec(errorBody.detail);
+            if (match) dateLabel = formatDateForDisplay(match[1]);
+        }
+
+        return `Nao foram retornados dados da CCEE e nao ha registros no cache local para a consulta. Dia: ${dateLabel || "mais recente"}. Submercado: ${submercado || "todos"}.`;
+    }
+
+    async function parseError(response, fallbackMessage) {
+        try {
+            const body = await response.json();
+            return new Error(body.detail || body.message || fallbackMessage);
+        } catch {
+            return new Error(fallbackMessage);
+        }
+    }
+
+    function showAlert(type, message) {
+        const host = document.getElementById("alertHost");
+        if (alertTimer) {
+            clearTimeout(alertTimer);
+            alertTimer = null;
+        }
+
+        host.innerHTML = `<div class="alert alert-${escapeHtml(type)}"><strong>${typeLabel(type)}:</strong> ${escapeHtml(message)}</div>`;
+
+        const timeoutMs = type === "error"
+            ? 12000
+            : type === "warning"
+                ? 9000
+                : 7000;
+
+        alertTimer = setTimeout(() => {
+            host.innerHTML = "";
+            alertTimer = null;
+        }, timeoutMs);
+    }
+
+    function typeLabel(type) {
+        if (type === "error") return "Erro";
+        if (type === "warning") return "Aviso";
+        return "Info";
+    }
+
+    function toMessage(error) {
+        return error instanceof Error ? error.message : "Erro inesperado.";
+    }
+
+    function formatDuration(seconds) {
+        const total = Number(seconds || 0);
+        if (total <= 0) return "0s";
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = Math.floor(total % 60);
+        if (h > 0) return `${h}h ${m}m ${s}s`;
+        if (m > 0) return `${m}m ${s}s`;
+        return `${s}s`;
+    }
+
+    function toDateTimeLocal(value) {
+        const date = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+
+        const pad = number => String(number).padStart(2, "0");
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hour = pad(date.getHours());
+        const minute = pad(date.getMinutes());
+        return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    function formatDateTime(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString("pt-BR");
+    }
+
+    function formatBytes(value) {
+        const bytes = Number(value || 0);
+        if (bytes <= 0) return "0 B";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function formatMegabytes(value) {
+        const bytes = Number(value || 0);
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function formatNumber(value) {
+        const number = Number(value || 0);
+        return Number.isFinite(number) ? number.toFixed(2) : "0";
+    }
+
+    function escapeHtml(text) {
+        const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+        return String(text).replace(/[&<>"']/g, match => map[match]);
+    }
+</script>
+</body>
+</html>

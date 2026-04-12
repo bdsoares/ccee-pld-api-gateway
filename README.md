@@ -8,7 +8,7 @@ A CCEE costuma proteger seu portal contra acessos automatizados por meio de WAF,
 
 ## Arquitetura
 
-- `Ccee.PldApp.Api`: entrada HTTP, auth do dashboard e mapeamento de erros.
+- `Ccee.PldApp.Api`: entrada HTTP, auth do painel admin e mapeamento de erros.
 - `Ccee.PldApp.Application`: caso de uso principal.
 - `Ccee.PldApp.Domain`: modelos de domínio (`PldQuery`, `PldRecord`, `PldQueryResult`).
 - `Ccee.PldApp.Infrastructure`: cliente CCEE via browser, parser e SQLite.
@@ -65,13 +65,13 @@ Invoke-RestMethod "http://localhost:5000/api/pld?submercado=SUDESTE&limit=24"
 ```
 
 ### `GET /login`
-Tela de login do dashboard.
+Tela de login do painel admin.
 
-### `GET /dashboard`
-Dashboard web (protegido por sessão).
+### `GET /admin`
+Painel admin web (protegido por sessão).
 
 ### `POST /api/auth/login`
-Autentica usuário do dashboard e cria cookie de sessão.
+Autentica usuário do painel admin e cria cookie de sessão.
 
 Body JSON:
 
@@ -83,10 +83,27 @@ Body JSON:
 ```
 
 ### `POST /api/auth/logout`
-Encerra sessão do dashboard.
+Encerra sessão do painel admin.
 
 ### `GET /api/auth/me`
 Retorna usuário autenticado da sessão atual.
+
+### Endpoints administrativos (`/api/admin/*`)
+
+- `GET /api/admin/overview`: visão geral do sistema (uptime, banco, browser, sessão, etc.).
+- `GET /api/admin/metrics`: métricas de requisições e tempos de resposta.
+  Parâmetros opcionais: `fromUtc`, `toUtc`, `method`, `pathContains`, `statusCode`.
+  Sem parâmetros, retorna por padrão a janela das últimas 24 horas.
+- `GET /api/admin/cache`: estatísticas e consultas recentes do cache SQLite.
+- `GET /api/admin/configs`: leitura de arquivos de configuração com mascaramento de campos sensíveis.
+- `GET /api/admin/logs/files`: lista arquivos de log disponíveis.
+- `GET /api/admin/logs?file=<arquivo>&lines=<n>`: últimas linhas do log selecionado.
+
+Exemplo de filtro de métricas:
+
+```powershell
+Invoke-RestMethod "http://localhost:5000/api/admin/metrics?fromUtc=2026-04-12T00:00:00Z&toUtc=2026-04-13T00:00:00Z&method=GET&pathContains=/api/pld"
+```
 
 ## Configuração
 
@@ -122,7 +139,7 @@ Regra:
 - Quando a descoberta automática encontra um `resource_id`, o valor é gravado automaticamente no `appsettings.json` em `PldGateway:ResourceIdsByYear`.
 - Se a descoberta automática falhar, retorna erro de validação.
 
-### HTML do dashboard/login
+### HTML do admin/login
 
 Arquivo de configuração:
 
@@ -131,11 +148,11 @@ Arquivo de configuração:
 Arquivos esperados:
 
 - `Configuration/Ui/login.html`
-- `Configuration/Ui/dashboard.html`
+- `Configuration/Ui/admin.html`
 
-Esses arquivos são lidos em tempo de execução a cada requisição de `/login` e `/dashboard`.
+Esses arquivos são lidos em tempo de execução a cada requisição de `/login` e `/admin`.
 
-### Autenticação do dashboard
+### Autenticação do painel admin
 
 Arquivo: `Ccee.PldApp.Api/Configuration/SecurityConfig.json`
 
@@ -182,6 +199,8 @@ dotnet test .\Ccee.PldApp.Tests\
 - O endpoint da CCEE exige uso de browser para consultas automáticas neste projeto.
 - A consulta por data usa `MES_REFERENCIA` + `DIA` como estratégia principal (formato real retornado pelo recurso atual da CCEE) e tenta formato de data completa apenas como compatibilidade.
 - O cache não expira automaticamente (comportamento intencional).
+- As métricas administrativas são persistidas em `logs/metrics/metrics-YYYYMMDD.jsonl` e mantidas por até 30 dias.
+- A leitura de logs no `/api/admin/logs` usa acesso compartilhado; quando o arquivo estiver temporariamente indisponível, a API pode responder `423 Locked`.
 
 ## Aviso legal e uso responsável
 

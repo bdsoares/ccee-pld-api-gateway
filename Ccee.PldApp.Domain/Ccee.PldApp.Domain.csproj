@@ -1,5 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <Compile Remove="artifacts\**\*.cs" />
+    <Compile Remove="obj-alt\**\*.cs" />
+    <Compile Remove="obj-alt-verify\**\*.cs" />
+    <None Remove="artifacts\**\*" />
+    <None Remove="obj-alt\**\*" />
+    <None Remove="obj-alt-verify\**\*" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

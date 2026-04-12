@@ -192,7 +192,7 @@
     <div class="login-container">
         <div class="login-header">
             <h1>CCEE PLD Gateway</h1>
-            <p>Dashboard de PLD</p>
+            <p>Painel Admin</p>
         </div>
 
         <div class="login-form">
@@ -281,7 +281,7 @@
                     throw new Error(message);
                 }
 
-                window.location.href = "/dashboard";
+                window.location.href = "/admin";
             } catch (error) {
                 showError(error instanceof Error ? error.message : "Erro inesperado.");
                 loginBtn.disabled = false;
@@ -306,7 +306,7 @@
             try {
                 const response = await fetch("/api/auth/me", { method: "GET" });
                 if (response.ok) {
-                    window.location.href = "/dashboard";
+                    window.location.href = "/admin";
                 }
             } catch {
                 // ignore network errors on startup check
