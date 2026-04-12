@@ -1,0 +1,11 @@
+@CceePldApi_HostAddress = http://localhost:5000
+
+GET {{CceePldApi_HostAddress}}/health
+
+###
+
+GET {{CceePldApi_HostAddress}}/api/pld?date=2026-04-11&submercado=SUL
+
+###
+
+GET {{CceePldApi_HostAddress}}/api/pld?submercado=SUDESTE&limit=24

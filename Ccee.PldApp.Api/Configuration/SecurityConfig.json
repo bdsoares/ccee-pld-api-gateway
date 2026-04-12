@@ -1,0 +1,14 @@
+﻿{
+  "Security": {
+    "Dashboard": {
+      "RequireAuthentication": true,
+      "SessionTimeoutMinutes": 60,
+      "Users": [
+        {
+          "Username": "admin",
+          "Password": "admin123"
+        }
+      ]
+    }
+  }
+}
