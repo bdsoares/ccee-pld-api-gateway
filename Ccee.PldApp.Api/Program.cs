@@ -700,20 +700,9 @@ static IResult ServeHtml(
         return Results.Content(configuredHtml, "text/html");
     }
 
-    var webRootPath = string.IsNullOrWhiteSpace(environment.WebRootPath)
-        ? null
-        : Path.Combine(environment.WebRootPath, fileName);
-
-    if (!string.IsNullOrWhiteSpace(webRootPath) && File.Exists(webRootPath))
-    {
-        var webRootHtml = File.ReadAllText(webRootPath);
-        return Results.Content(webRootHtml, "text/html");
-    }
-
     logger.LogWarning(
-        "Arquivo HTML nao encontrado. Configurado: {ConfiguredPath}. Fallback webroot: {WebRootPath}",
-        configuredHtmlPath,
-        webRootPath ?? "(indisponivel)");
+        "Arquivo HTML nao encontrado no caminho configurado: {ConfiguredPath}",
+        configuredHtmlPath);
 
     return Results.NotFound(new { error = "Pagina indisponivel" });
 }

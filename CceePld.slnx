@@ -1,7 +1,6 @@
 <Solution>
   <Project Path="Ccee.PldApp.Application/Ccee.PldApp.Application.csproj" />
   <Project Path="Ccee.PldApp.Api/Ccee.PldApp.Api.csproj" />
-  <Project Path="Ccee.PldApp.Console/Ccee.PldApp.Console.csproj" />
   <Project Path="Ccee.PldApp.Domain/Ccee.PldApp.Domain.csproj" />
   <Project Path="Ccee.PldApp.Infrastructure/Ccee.PldApp.Infrastructure.csproj" />
   <Project Path="Ccee.PldApp.Tests/Ccee.PldApp.Tests.csproj" />

@@ -12,12 +12,11 @@ A CCEE costuma proteger seu portal contra acessos automatizados por meio de WAF,
 - `Ccee.PldApp.Application`: caso de uso principal.
 - `Ccee.PldApp.Domain`: modelos de domínio (`PldQuery`, `PldRecord`, `PldQueryResult`).
 - `Ccee.PldApp.Infrastructure`: cliente CCEE via browser, parser e SQLite.
-- `Ccee.PldApp.Console`: cliente de linha de comando.
 - `Ccee.PldApp.Tests`: testes unitários.
 
 ## Fluxo funcional
 
-1. API/Console recebem os parâmetros.
+1. A API recebe os parâmetros.
 2. A consulta é validada e normalizada.
 3. O caso de uso tenta responder pelo cache SQLite.
 4. Se não houver cache, a aplicação consulta a CCEE **via browser**.
@@ -27,7 +26,7 @@ A CCEE costuma proteger seu portal contra acessos automatizados por meio de WAF,
 
 ## Regra de submercado
 
-A API e o Console aceitam apenas valores exatos:
+A API aceita apenas valores exatos:
 
 - `SUDESTE`
 - `SUL`
@@ -169,12 +168,6 @@ No `cmd` (Windows):
 
 ```cmd
 dotnet run --project .\Ccee.PldApp.Api\
-```
-
-### Console
-
-```powershell
-dotnet run --project .\Ccee.PldApp.Console\ -- --date=2026-04-11 --submercado=SUL --limit=24
 ```
 
 ## Build e testes

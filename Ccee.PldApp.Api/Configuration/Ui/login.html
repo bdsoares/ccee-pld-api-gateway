@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CCEE PLD Gateway</title>
     <style>
+        :root {
+            --bg-main: #040917;
+            --bg-card: #0c1740;
+            --bg-card-alt: #112252;
+            --text-main: #edf4ff;
+            --text-soft: #9db3dc;
+            --accent-blue: #3f8cff;
+            --accent-cyan: #2dd4f6;
+            --accent-purple: #a855f7;
+            --danger: #f87171;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,44 +24,51 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #1a1a1a;
-            color: #ffffff;
+            font-family: "Segoe UI Variable Display", "Bahnschrift", "Candara", sans-serif;
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            background:
+                radial-gradient(circle at 10% 14%, rgba(63, 140, 255, 0.24) 0%, transparent 40%),
+                radial-gradient(circle at 88% 6%, rgba(168, 85, 247, 0.15) 0%, transparent 35%),
+                linear-gradient(180deg, #040917 0%, #07122d 100%);
         }
 
         .login-container {
             width: 100%;
-            max-width: 400px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 410px;
+            background: linear-gradient(180deg, rgba(17, 34, 82, 0.95) 0%, rgba(12, 23, 64, 0.96) 100%);
+            border-radius: 14px;
+            border: 1px solid rgba(88, 129, 235, 0.34);
+            box-shadow: 0 26px 64px rgba(1, 6, 22, 0.65);
             overflow: hidden;
+            animation: rise-in 360ms ease-out both;
         }
 
         .login-header {
-            background: linear-gradient(135deg, #FF9800 0%, #FF6F00 100%);
-            color: white;
+            background: linear-gradient(135deg, #0a2a73 0%, #1850bf 45%, #2d85ff 100%);
+            color: #f5f9ff;
             padding: 40px 20px;
             text-align: center;
+            border-bottom: 1px solid rgba(114, 157, 247, 0.42);
         }
 
         .login-header h1 {
             font-size: 24px;
             margin-bottom: 10px;
+            letter-spacing: 0.5px;
         }
 
         .login-header p {
             font-size: 14px;
-            opacity: 0.9;
+            color: #d5e7ff;
         }
 
         .login-form {
-            padding: 40px 20px;
+            padding: 36px 20px;
         }
 
         .form-group {
@@ -61,47 +80,51 @@
         .form-group label {
             font-weight: 600;
             margin-bottom: 8px;
-            color: #e0e0e0;
-            font-size: 14px;
+            color: #c5dafc;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         .form-group input {
             padding: 12px;
-            border: 1px solid #444;
-            border-radius: 4px;
+            border: 1px solid rgba(108, 148, 255, 0.33);
+            border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
-            background-color: #333;
-            color: #ffffff;
-            transition: border-color 0.2s;
+            background-color: rgba(7, 18, 45, 0.9);
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #FF9800;
-            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(45, 212, 246, 0.15);
         }
 
         .form-group input::placeholder {
-            color: #999;
+            color: #7891be;
         }
 
         .login-btn {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #FF9800 0%, #FF6F00 100%);
-            color: white;
+            background: linear-gradient(135deg, #2dd4f6 0%, #3f8cff 100%);
+            color: #f8fbff;
             border: none;
-            border-radius: 4px;
-            font-weight: 600;
+            border-radius: 8px;
+            font-weight: 700;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s;
+            letter-spacing: 0.3px;
+            transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
         }
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+            filter: brightness(1.05);
+            box-shadow: 0 12px 24px rgba(63, 140, 255, 0.4);
         }
 
         .login-btn:disabled {
@@ -111,35 +134,36 @@
         }
 
         .error {
-            background: #c62828;
-            color: #ffcdd2;
+            background: rgba(127, 29, 29, 0.66);
+            color: #ffe0e0;
             padding: 12px;
-            border-radius: 4px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            border: 1px solid #b71c1c;
+            border: 1px solid rgba(248, 113, 113, 0.58);
             font-size: 14px;
             display: none;
         }
 
         .info {
-            background: #1565c0;
-            color: #bbdefb;
+            background: rgba(18, 52, 121, 0.5);
+            color: #d2e6ff;
             padding: 12px;
-            border-radius: 4px;
+            border-radius: 8px;
             margin-bottom: 20px;
             font-size: 12px;
             line-height: 1.5;
+            border: 1px solid rgba(125, 167, 255, 0.34);
         }
 
         .loading {
             display: none;
             text-align: center;
-            color: #FF9800;
+            color: #89ddff;
         }
 
         .spinner {
-            border: 3px solid #444;
-            border-top: 3px solid #FF9800;
+            border: 3px solid rgba(84, 116, 182, 0.36);
+            border-top: 3px solid var(--accent-purple);
             border-radius: 50%;
             width: 24px;
             height: 24px;
@@ -151,6 +175,17 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        @keyframes rise-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -161,13 +196,6 @@
         </div>
 
         <div class="login-form">
-            <div class="info">
-                Credenciais padrao no arquivo de configuracao:<br>
-                <code>Ccee.PldApp.Api/Configuration/SecurityConfig.json</code>
-            </div>
-
-            <div class="error" id="errorDiv"></div>
-
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label for="username">Usuario</label>
@@ -192,6 +220,8 @@
                         autocomplete="current-password"
                     />
                 </div>
+
+                <div class="error" id="errorDiv"></div>
 
                 <button type="submit" class="login-btn" id="loginBtn">
                     Entrar
