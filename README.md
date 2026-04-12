@@ -189,3 +189,24 @@ dotnet test .\Ccee.PldApp.Tests\
 - O endpoint da CCEE exige uso de browser para consultas automáticas neste projeto.
 - A consulta por data usa `MES_REFERENCIA` + `DIA` como estratégia principal (formato real retornado pelo recurso atual da CCEE) e tenta formato de data completa apenas como compatibilidade.
 - O cache não expira automaticamente (comportamento intencional).
+
+## Aviso legal e uso responsável
+
+Este é um projeto pessoal desenvolvido apenas para estudo técnico.
+
+Embora o portal de Dados Abertos da CCEE disponibilize APIs para consumo automatizado, o uso dos dados e da plataforma também é condicionado aos Termos de Uso da CCEE. Isso pode gerar uma ambiguidade jurídica/operacional sobre como determinadas automações devem ser conduzidas na prática.
+
+Antes de uso em produção, recomenda-se:
+
+- Revisar internamente os aspectos de compliance e jurídico.
+- Utilizar a API oficial (`/api/3/action/...`) com limites de requisição e monitoramento.
+- Manter atribuição da fonte CCEE conforme licença aplicável.
+- Em caso de dúvida, solicitar orientação formal da própria CCEE.
+
+Fontes oficiais consultadas:
+
+- [Portal Dados Abertos CCEE (sobre)](https://dadosabertos.ccee.org.br/about)
+- [Dataset PLD_HORARIO (licença e termo legal)](https://dadosabertos.ccee.org.br/dataset/pld_horario)
+- [Lista de datasets com referência à API CKAN](https://dadosabertos.ccee.org.br/dataset/)
+- [Termo de Acesso e Uso da CCEE](https://www.ccee.org.br/-/termo-de-acesso-e-uso)
+- [Documentação da API CKAN](https://docs.ckan.org/en/2.10/api/)
