@@ -13,6 +13,7 @@ internal sealed class PldDatasetRequest
     public required string ResourceId { get; init; }
     public DateOnly? Dia { get; init; }
     public bool UseMonthReferenceDate { get; init; }
+    public bool UseZeroPaddedDay { get; init; }
     public string? Submercado { get; init; }
     public int Limit { get; init; } = 1000;
     public string Sort { get; init; } = "DIA desc,HORA desc";
@@ -20,7 +21,10 @@ internal sealed class PldDatasetRequest
     /// <summary>
     /// Converts a domain query into the upstream format expected by CCEE.
     /// </summary>
-    public static PldDatasetRequest FromQuery(PldQuery query, bool useMonthReferenceDate)
+    public static PldDatasetRequest FromQuery(
+        PldQuery query,
+        bool useMonthReferenceDate,
+        bool useZeroPaddedDay = false)
     {
         var normalized = query.Normalize();
 
@@ -29,6 +33,7 @@ internal sealed class PldDatasetRequest
             ResourceId = normalized.ResourceId,
             Dia = normalized.Dia,
             UseMonthReferenceDate = useMonthReferenceDate,
+            UseZeroPaddedDay = useZeroPaddedDay,
             Submercado = normalized.Submercado,
             Limit = normalized.Limit
         };
@@ -75,7 +80,9 @@ internal sealed class PldDatasetRequest
             {
                 // The current PLD_HORARIO resources store DIA as day-of-month text and rely on MES_REFERENCIA.
                 filters["MES_REFERENCIA"] = Dia.Value.ToString("yyyyMM", CultureInfo.InvariantCulture);
-                filters["DIA"] = Dia.Value.Day.ToString(CultureInfo.InvariantCulture);
+                filters["DIA"] = UseZeroPaddedDay
+                    ? Dia.Value.Day.ToString("00", CultureInfo.InvariantCulture)
+                    : Dia.Value.Day.ToString(CultureInfo.InvariantCulture);
             }
         }
 

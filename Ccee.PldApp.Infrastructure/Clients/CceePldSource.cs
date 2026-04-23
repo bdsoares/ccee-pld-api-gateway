@@ -1,4 +1,5 @@
 using Ccee.PldApp.Application.Abstractions;
+using Ccee.PldApp.Application.Exceptions;
 using Ccee.PldApp.Domain;
 using Ccee.PldApp.Infrastructure.Configuration;
 using Ccee.PldApp.Infrastructure.Parsing;
@@ -28,9 +29,37 @@ public sealed class CceePldSource : ICceePldSource, IDisposable
         bool useMonthReferenceDate,
         CancellationToken cancellationToken = default)
     {
-        var request = PldDatasetRequest.FromQuery(query, useMonthReferenceDate);
-        var root = await _browserClient.GetRawAsync(request, cancellationToken);
-        return PldRecordParser.ParseRecords(root);
+        var normalized = query.Normalize();
+        var shouldTryZeroPaddedFallback =
+            !useMonthReferenceDate &&
+            normalized.Dia.HasValue &&
+            normalized.Dia.Value.Day < 10;
+
+        async Task<IReadOnlyList<PldRecord>> FetchAsync(bool useZeroPaddedDay)
+        {
+            var request = PldDatasetRequest.FromQuery(
+                normalized,
+                useMonthReferenceDate,
+                useZeroPaddedDay);
+
+            var root = await _browserClient.GetRawAsync(request, cancellationToken);
+            return PldRecordParser.ParseRecords(root);
+        }
+
+        try
+        {
+            var records = await FetchAsync(useZeroPaddedDay: false);
+
+            if (!shouldTryZeroPaddedFallback || records.Count > 0)
+                return records;
+        }
+        catch (CceeGatewayException) when (shouldTryZeroPaddedFallback)
+        {
+            // For some days CCEE accepts DIA only with zero-padding (e.g., 09).
+            // If the first request fails, retry once with zero-padded DIA.
+        }
+
+        return await FetchAsync(useZeroPaddedDay: true);
     }
 
     public void Dispose()
